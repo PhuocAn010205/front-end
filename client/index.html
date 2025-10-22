@@ -36,14 +36,14 @@
             </div>
         </div>
     </header>
-    
+   
     <!-- Main -->
     <main>
         <section class="main__section">
             <div class="container">
                 <h2 class="section__title">Bản đồ các trạm sạc</h2>
                 <p class="section__description">Quản lý ví điện tử của bạn một cách dễ dàng và an toàn với EV Wallet.</p>
-                
+               
                 <div class="subpanel active" id="driver-map">
                     <div class="filters">
                         <div class="search-wrapper">
@@ -64,7 +64,7 @@
                             </div>
                             <div class="select-menu">
                                 <div class="select">
-                                    <span>Tất cả trạng thái</span>
+                                    <span>Trạng thái</span>
                                     <i class="fa-solid fa-angle-down"></i>
                                 </div>
                                 <div class="option-list">
@@ -84,7 +84,7 @@
                                 <h3>Danh sách trạm gần nhất</h3>
                                 <p id="stationCount">3 trạm</p>
                             </div>
-                            <div id="listContent"></div>
+                            <div id="listContent" class="scrollable-list"></div> <!-- Thêm class scrollable-list -->
                         </aside>
                     </div>
                 </div>
@@ -92,264 +92,9 @@
         </section>
     </main>
 
-    <!-- JS cho Google Maps (định nghĩa trước) -->
-    <script>
-        let map;
-        let markers = [];
-
-        /**
-         * Hàm khởi tạo (constructor) cho đối tượng trạm sạc.
-         * @param {string} name - Tên trạm sạc
-         * @param {number} lat - Vĩ độ
-         * @param {number} lng - Kinh độ
-         * @param {string} connector - Loại cổng sạc (CCS, AC, v.v.)
-         * @param {string} status - Trạng thái (available, busy)
-         * @param {number} power - Công suất (kW)
-         * @param {number} price - Đơn giá (đ/kWh)
-         * @param {string} address - Địa chỉ
-         * @param {string} distance - Khoảng cách (ví dụ: "1.2km")
-         */
-        function tram(name, lat, lng, connector, status, power, price, address, distance) {
-            // Thuộc tính
-            this.name = name;
-            this.lat = lat;
-            this.lng = lng;
-            this.connector = connector;
-            this.status = status;
-            this.power = power;
-            this.price = price;
-            this.address = address;
-            this.distance = distance;
-
-            // Phương thức (hành động)
-            // Phương thức để hiển thị thông tin cơ bản
-            this.hienThiThongTin = function() {
-                console.log(`--- Thông tin trạm sạc ---`);
-                console.log(`Tên: ${this.name}`);
-                console.log(`Địa chỉ: ${this.address}`);
-                console.log(`Trạng thái: ${this.status === 'available' ? 'Còn trống' : 'Đang bận'}`);
-                console.log(`Loại sạc: ${this.connector} (${this.power}kW)`);
-                console.log(`Giá: ${this.price}đ/kWh`);
-            };
-
-            // Phương thức để kiểm tra xem trạm có trống không
-            this.conTrong = function() {
-                return this.status === 'available';
-            };
-
-            // Phương thức để cập nhật trạng thái
-            this.capNhatTrangThai = function(newStatus) {
-                this.status = newStatus;
-                console.log(`Trạm ${this.name} đã được cập nhật trạng thái thành: ${newStatus}`);
-            };
-        }
-
-        function initMap() {
-            if (typeof google === 'undefined' || !google.maps) {
-                console.error("Google Maps API not loaded. Check your API key and billing.");
-                return;
-            }
-
-            // Khởi tạo bản đồ với trung tâm Sài Gòn
-            map = new google.maps.Map(document.getElementById("map"), {
-                center: { lat: 10.7769, lng: 106.7009 }, // Sài Gòn, Việt Nam
-                zoom: 12,
-                styles: [ // Dark theme
-                    { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
-                    { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
-                    { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
-                    {
-                        featureType: 'administrative.locality',
-                        elementType: 'labels.text.fill',
-                        stylers: [{ color: '#d59563' }]
-                    }
-                ]
-            });
-
-            // Tạo các đối tượng trạm sạc
-            const tramSaiGon1 = new tram(
-                "Trạm Sạc Sài Gòn 1",
-                10.7769,
-                106.7009,
-                "CCS",
-                "available",
-                50,
-                2000,
-                "1 Lê Lợi, Q.1, TP.HCM",
-                "1.2km"
-            );
-
-            const tramSaiGon2 = new tram(
-                "Trạm Sạc Sài Gòn 2",
-                10.785,
-                106.705,
-                "AC",
-                "busy",
-                30,
-                1500,
-                "2 Nguyễn Huệ, Q.1, TP.HCM",
-                "2.5km"
-            );
-
-            const tramSaiGon3 = new tram(
-                "Trạm Sạc Sài Gòn 3",
-                10.770,
-                106.690,
-                "CHAdeMO",
-                "available",
-                100,
-                2500,
-                "3 Pasteur, Q.1, TP.HCM",
-                "0.8km"
-            );
-
-            // Mảng các trạm sạc
-            const stations = [tramSaiGon1, tramSaiGon2, tramSaiGon3];
-
-            // Tạo marker cho từng trạm
-            const infowindow = new google.maps.InfoWindow();
-            stations.forEach((station) => {
-                const marker = new google.maps.Marker({
-                    position: { lat: station.lat, lng: station.lng },
-                    map: map,
-                    title: station.name,
-                    icon: station.status === "available" ? "http://maps.google.com/mapfiles/ms/icons/green-dot.png" : "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
-                });
-
-                marker.addListener("click", () => {
-                    const content = document.createElement("div");
-                    content.style.color = "#e6ecff";
-                    const nameElement = document.createElement("h3");
-                    nameElement.textContent = station.name;
-                    content.appendChild(nameElement);
-
-                    const details = document.createElement("p");
-                    details.innerHTML = `Loại: ${station.connector}<br>Trạng thái: ${station.status}<br>Công suất: ${station.power}kW<br>Giá: ${station.price}đ/kWh<br><button onclick="bookStation('${station.name}')">Đặt chỗ</button>`;
-                    content.appendChild(details);
-
-                    infowindow.setContent(content);
-                    infowindow.open(map, marker);
-                });
-
-                markers.push({ marker, station });
-                updateStationList(); // Cập nhật danh sách
-            });
-
-            // Tích hợp Autocomplete
-            const autocomplete = new google.maps.places.Autocomplete(document.getElementById("searchInput"), {
-                fields: ["geometry"],
-                types: ["geocode"]
-            });
-            autocomplete.addListener("place_changed", () => {
-                const place = autocomplete.getPlace();
-                if (!place.geometry) return;
-                map.setCenter(place.geometry.location);
-                map.setZoom(14);
-            });
-        }
-
-        // Lấy vị trí hiện tại
-        function getCurrentLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const userLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
-                    map.setCenter(userLocation);
-                    map.setZoom(14);
-                    new google.maps.Marker({
-                        position: userLocation,
-                        map: map,
-                        icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-                        title: 'Vị trí của bạn'
-                    });
-                }, () => alert("Không thể lấy vị trí hiện tại."));
-            }
-        }
-
-        // Cập nhật danh sách trạm
-        function updateStationList() {
-            const listContent = document.getElementById("listContent");
-            let html = '';
-            markers.forEach((item, index) => {
-                const station = item.station;
-                html += `
-                    <div class="station-card">
-                        <div class="station-header">
-                            <h4>${station.name}</h4>
-                            <span class="status ${station.status}">${station.status === 'available' ? 'Trống' : 'Đang dùng'}</span>
-                        </div>
-                        <p class="address">${station.address}</p>
-                        <p class="details">
-                            <i class="fa-solid fa-bolt"></i> ${station.connector} | ${station.power}kW | ${station.price}đ/kWh
-                        </p>
-                        <p class="distance">${station.distance}</p>
-                        <button onclick="bookStation('${station.name}')" class="btn-book">Đặt chỗ</button>
-                    </div>
-                `;
-            });
-            listContent.innerHTML = html;
-            document.getElementById("stationCount").textContent = `${markers.length} trạm`;
-        }
-
-        // Hàm lọc marker
-        function filterMarkers() {
-            const connector = document.querySelector(".select-menu:nth-child(1) .select span").textContent;
-            const status = document.querySelector(".select-menu:nth-child(2) .select span").textContent;
-            const sort = document.querySelector(".select-menu:nth-child(3) .select span").textContent;
-
-            markers.forEach(item => {
-                const marker = item.marker;
-                const station = item.station;
-                let show = true;
-
-                if (connector !== "Tất cả" && station.connector !== connector) show = false;
-                if (status !== "Tất cả trạng thái" && station.status !== status) show = false;
-
-                marker.setVisible(show);
-            });
-
-            updateStationList(); // Cập nhật danh sách sau lọc
-        }
-
-        // Hàm đặt chỗ
-        function bookStation(name) {
-            alert(`Đặt chỗ trạm ${name} thành công! Sẽ chuyển đến thanh toán ví EV.`);
-            // TODO: Gọi API đặt chỗ và thanh toán
-        }
-
-        // Gán initMap cho window
-        window.initMap = initMap;
-
-        // Thêm sự kiện cho nút vị trí hiện tại
-        document.getElementById("currentLocation").addEventListener("click", getCurrentLocation);
-    </script>
-
-    <!-- Google Maps Script Loader (đặt sau JS) -->
+    <!-- Thêm file JS riêng -->
+    <script src="./src/js/map.js"></script>
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCdiPStX3WkfOkp11UQ0N6g9DjBGCODdNY&callback=initMap&libraries=places"></script>
-
-    <!-- JS cho Custom Selects -->
-    <script>
-        const selectMenus = document.querySelectorAll(".select-menu");
-        selectMenus.forEach((menu) => {
-            const select = menu.querySelector(".select");
-            const optionList = menu.querySelector(".option-list");
-            const options = menu.querySelectorAll(".option");
-
-            select.addEventListener("click", () => {
-                optionList.classList.toggle("active");
-                select.querySelector(".fa-angle-down").classList.toggle("fa-angle-up");
-            });
-
-            options.forEach((option) => {
-                option.addEventListener("click", () => {
-                    options.forEach((opt) => opt.classList.remove("selected"));
-                    select.querySelector("span").innerHTML = option.innerHTML;
-                    option.classList.add("selected");
-                    optionList.classList.remove("active");
-                    select.querySelector(".fa-angle-down").classList.remove("fa-angle-up");
-                    filterMarkers(); // Gọi hàm lọc khi chọn option
-                });
-            });
-        });
-    </script>
+    <script src="./src/js/selects.js"></script>
 </body>
 </html>

@@ -104,16 +104,15 @@ main {
 
 /* Filters (căn chỉnh lại để không đè lên nhau) */
 .filters {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap; /* Cho phép xuống dòng khi cần */
-  margin: 12px 0;
-  align-items: center;
-  background: var(--panel);
-  padding: 12px 20px;
-  border-radius: 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  max-width: 100%; /* Đảm bảo không vượt quá container */
+    display: flex;
+    justify-content: space-between; /* Phân bố đều các phần tử */
+    align-items: center;
+    background: var(--panel);
+    padding: 12px 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    margin: 12px 0;
+    max-width: 100%;
 }
 .search-wrapper {
   position: relative;
@@ -265,9 +264,20 @@ main {
   border-radius: 20px;
   background: linear-gradient(180deg, #1a2338, #0f1a2e);
   min-height: 650px;
-  overflow: auto;
+  max-height: 650px; /* Giới hạn chiều cao tối đa */
+  overflow-y: auto; /* Kích hoạt cuộn dọc */
   padding: 0;
 }
+/* Tùy chỉnh thanh cuộn để đẹp hơn */
+.list {
+  border: 1px solid #2e406a;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #1a2338, #0f1a2e);
+  height: 650px; /* Giữ chiều cao cố định để khớp bản đồ */
+  overflow: hidden; /* Ẩn overflow của .list, để cuộn chỉ ở #listContent */
+  padding: 0;
+}
+
 .list-header {
   display: flex;
   justify-content: space-between;
@@ -276,20 +286,61 @@ main {
   border-bottom: 1px solid #2e406a;
   background: #1a2338;
   border-radius: 20px 20px 0 0;
+  position: sticky; /* Giữ header cố định khi cuộn (nếu cần) */
+  top: 0;
+  z-index: 1;
+}
+
+#listContent {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: 20px; /* Giảm khoảng cách để fit 3 card */
+  max-height: calc(650px - 60px); /* Trừ chiều cao header ≈60px (padding + border) */
+  overflow-y: auto; /* Kích hoạt cuộn dọc */
+}
+
+/* Tùy chỉnh thanh cuộn */
+#listContent::-webkit-scrollbar {
+  width: 8px;
+}
+
+#listContent::-webkit-scrollbar-track {
+  background: #1a2338;
+  border-radius: 4px;
+}
+
+#listContent::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+#listContent::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-2);
 }
 .list-header h3 { margin: 0; color: var(--text); font-size: 1.8rem; }
 #stationCount { margin: 0; color: var(--muted); font-size: 1.4rem; }
-#listContent { padding: 16px; }
+#listContent {
+   padding: 16px;
+ display: grid;
+ grid-template-columns: 1fr;
+ row-gap: 30px;
+}
 .station-card {
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 16px;
-  border-bottom: 1px solid #2e406a;
   background: var(--card);
   border-radius: 10px;
   transition: transform 0.2s, box-shadow 0.2s;
+  /* Không cần border-bottom vì giờ là card riêng */
 }
+
+.station-card:last-child {
+  margin-bottom: 0; /* Tránh margin thừa ở cuối */
+}
+
 .station-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -305,15 +356,23 @@ main {
   border-radius: 15px;
   font-size: 1.2rem;
   font-weight: 500;
-  text-transform: uppercase;
 }
-.status.available { background: rgba(76, 175, 80, 0.15); color: var(--accent); }
+.status.available {
+   background: rgba(76, 175, 80, 0.15); color: var(--accent);
+  
+  }
 .status.busy { background: rgba(244, 67, 54, 0.15); color: var(--danger); }
-.address { margin: 0; color: var(--muted); font-size: 1.4rem; }
+.address {
+   margin: 0; 
+   color: var(--muted); 
+   font-size: 1.4rem; 
+
+  }
 .details { margin: 0; color: var(--text); display: flex; gap: 8px; align-items: center; }
 .details i { color: var(--accent); }
 .distance { margin: 0; color: var(--muted); font-size: 1.4rem; font-style: italic; }
 .btn-book {
+  display: inline-block;
   padding: 8px 20px;
   background: var(--accent);
   color: #fff;
@@ -344,4 +403,45 @@ main {
   .search-wrapper { width: 100%; }
   .select-menu { width: 140px; }
   .btn-location { width: 100%; }
+}
+/* InfoWindow */
+
+.gm-style .gm-style-iw {
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    background: #1a2338;
+    color: var(--text);
+    font-family: "Inter", sans-serif;
+    width: 250px;
+
+}
+.gm-style .gm-style-iw h3 {
+
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+    color: var(--accent);
+}
+.gm-style .gm-style-iw p {
+    font-size: 1.4rem;
+    margin: 5px 0;
+    line-height: 1.5;
+}
+.gm-style .gm-style-iw button {
+  margin-top: 10px;
+    padding: 8px 16px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.4rem;
+    transition: background 0.3s;
+}
+.gm-style .gm-style-iw button:hover {
+    background: var(--primary-2);
+}
+.gm-style .gm-style-iw .gm-style-iw-d {
+    overflow: hidden !important;
 }
